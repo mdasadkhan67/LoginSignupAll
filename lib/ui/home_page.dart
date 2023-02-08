@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fb_task/utils/firebase_email_Signup.dart';
 
 import 'package:google_fb_task/utils/login_utils.dart';
+import 'package:google_fb_task/widget/background_decoration.dart';
 
 class HomePage extends StatefulWidget {
   String? fbImageUrl;
@@ -17,6 +18,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  var firebaseInstanceVar = FirebaseAuth.instance.currentUser;
+
   @override
   void initState() {
     super.initState();
@@ -30,17 +33,7 @@ class _HomePageState extends State<HomePage> {
           child: Container(
             height: MediaQuery.of(context).size.height,
             width: MediaQuery.of(context).size.width,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.purpleAccent,
-                  Colors.amber,
-                  Colors.blue,
-                ],
-              ),
-            ),
+            decoration: BackgroundWidget(),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -66,11 +59,9 @@ class _HomePageState extends State<HomePage> {
                                         radius: 60,
                                         child: CircleAvatar(
                                           backgroundImage: NetworkImage(
-                                            (FirebaseAuth.instance.currentUser!
-                                                        .photoURL !=
+                                            (firebaseInstanceVar!.photoURL !=
                                                     null)
-                                                ? FirebaseAuth.instance
-                                                    .currentUser!.photoURL
+                                                ? firebaseInstanceVar!.photoURL
                                                     .toString()
                                                 : 'https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_960_720.png',
                                           ),
@@ -81,10 +72,8 @@ class _HomePageState extends State<HomePage> {
                                     height: 20,
                                   ),
                                   Text(
-                                    (FirebaseAuth.instance.currentUser!
-                                                .displayName !=
-                                            null)
-                                        ? "Name: ${FirebaseAuth.instance.currentUser!.displayName}"
+                                    (firebaseInstanceVar!.displayName != null)
+                                        ? "Name: ${firebaseInstanceVar!.displayName}"
                                         : '',
                                     style: TextStyle(
                                       fontSize: 30.0,
@@ -107,9 +96,8 @@ class _HomePageState extends State<HomePage> {
                                     height: 8,
                                   ),
                                   Text(
-                                    (FirebaseAuth.instance.currentUser!.email !=
-                                            null)
-                                        ? "Email: ${FirebaseAuth.instance.currentUser!.email}"
+                                    (firebaseInstanceVar!.email != null)
+                                        ? "Email: ${firebaseInstanceVar!.email}"
                                         : '',
                                     style: TextStyle(
                                       fontSize: 18.0,
@@ -131,10 +119,8 @@ class _HomePageState extends State<HomePage> {
                                     height: 8,
                                   ),
                                   Text(
-                                    (FirebaseAuth.instance.currentUser!
-                                                .phoneNumber !=
-                                            null)
-                                        ? "Phone: ${FirebaseAuth.instance.currentUser!.phoneNumber}"
+                                    (firebaseInstanceVar!.phoneNumber != null)
+                                        ? "Phone: ${firebaseInstanceVar!.phoneNumber}"
                                         : '',
                                     style: TextStyle(
                                       fontSize: 18.0,

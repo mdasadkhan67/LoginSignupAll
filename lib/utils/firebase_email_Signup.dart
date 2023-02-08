@@ -1,5 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:intl_phone_field/phone_number.dart';
+import 'package:google_fb_task/const/const.dart';
 
 class AuthenticationHelper {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -30,11 +30,19 @@ class AuthenticationHelper {
     }
   }
 
-  Future signIn({String? email, String? password}) async {
+  Future signIn({
+    String? email,
+    String? password,
+  }) async {
     try {
-      await _auth.signInWithEmailAndPassword(
-          email: email!, password: password!);
-      return null;
+      await _auth
+          .signInWithEmailAndPassword(email: email!, password: password!)
+          .then((value) async {
+        await FirebaseAuth.instance.currentUser!.updateEmail(email);
+        await FirebaseAuth.instance.currentUser!.updatePassword(password);
+      }).onError(
+        (error, stackTrace) => ConstantItems.toastMessage("$error"),
+      );
     } on FirebaseAuthException catch (e) {
       return e.message;
     }

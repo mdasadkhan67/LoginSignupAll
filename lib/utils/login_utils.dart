@@ -4,7 +4,7 @@ import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fb_task/model/user_signup_model.dart';
 import 'package:google_fb_task/ui/home_page.dart';
-import 'package:google_fb_task/ui/login_page.dart';
+import 'package:google_fb_task/ui/login/login_page.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -97,7 +97,6 @@ class LoginUtils {
           .then((value) => Navigator.pushReplacement(
               context, MaterialPageRoute(builder: (context) => HomePage())));
     } catch (error) {
-      print(error.toString());
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => const LoginPage()));
     }
