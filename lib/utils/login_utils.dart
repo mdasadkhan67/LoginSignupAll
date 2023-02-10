@@ -1,10 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_fb_task/const/const.dart';
 import 'package:google_fb_task/model/user_signup_model.dart';
 import 'package:google_fb_task/ui/home_page.dart';
 import 'package:google_fb_task/ui/login/login_page.dart';
+import 'package:google_fb_task/utils/shared_pref_services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -13,25 +15,23 @@ class LoginUtils {
 
   static facebookLogin(BuildContext context) async {
     try {
-      final result =
-          await FacebookAuth.i.login(permissions: ['public_profile', 'email']);
+      final result = await FacebookAuth.i.login(permissions: [
+        'public_profile',
+        'email',
+      ]);
       if (result.status == LoginStatus.success) {
         final userData = await FacebookAuth.i.getUserData();
         // final fbimgUrl = userData['picture']['data']['url'].toString();
+        Prefs.setString('loginBy', 'facebook');
+        Prefs.setBool('isLogin', true);
+        Prefs.setString('email', userData['email']);
+        Prefs.setString('name', userData['name']);
+        Prefs.setString(
+            'imageurl', userData['picture']['data']['url'].toString());
+        Prefs.setInt('phone', 0);
         final OAuthCredential facebookAuthCredential =
             FacebookAuthProvider.credential(result.accessToken!.token);
-        var finalResult = FirebaseAuth.instance
-            .signInWithCredential(facebookAuthCredential)
-            .then((value) => FirebaseFirestore.instance
-                    .collection('UserData')
-                    .doc(FirebaseAuth.instance.currentUser!.uid)
-                    .set({
-                  'email': userData['email'],
-                  'imageurl': userData['picture']['data']['url'],
-                  'name': userData['name'],
-                  'phone': userData['phone']
-                }))
-            .then(
+        FirebaseAuth.instance.signInWithCredential(facebookAuthCredential).then(
           (value) {
             FirebaseAuth.instance.currentUser!
                 .updateDisplayName(userData['name'].toString());
@@ -39,32 +39,48 @@ class LoginUtils {
                 .updateEmail(userData['email'].toString());
             FirebaseAuth.instance.currentUser!
                 .updatePhotoURL(userData['picture']['data']['url'].toString());
+            FirebaseAuth.instance.currentUser!.updatePhoneNumber;
 
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => HomePage()),
             );
           },
-        ).onError(
+          //Pest Your Google Instance Code Here
+        ).then((value) async {
+          if (userData != null) {
+            String uid = FirebaseAuth.instance.currentUser!.uid;
+            UserModel newUser = UserModel(
+                uid: FirebaseAuth.instance.currentUser!.uid,
+                name: FirebaseAuth.instance.currentUser!.displayName,
+                email: FirebaseAuth.instance.currentUser!.email ??
+                    FirebaseAuth.instance.currentUser!.providerData[0].email,
+                phone: FirebaseAuth.instance.currentUser!.phoneNumber,
+                imageurl: FirebaseAuth.instance.currentUser!.photoURL);
+            await FirebaseFirestore.instance
+                .collection("users")
+                .doc(uid)
+                .set(newUser.toMap())
+                .then((value) => print("UserStored"));
+          }
+        }).onError(
           (error, stackTrace) {
-            Fluttertoast.showToast(
-                // msg: "An account already exists with the same email address",
-                msg: error.toString(),
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.BOTTOM,
-                timeInSecForIosWeb: 3,
-                backgroundColor: Colors.red,
-                textColor: Colors.white,
-                fontSize: 16.0);
+            ConstantItems.toastMessage(
+              error.toString(),
+            );
           },
         );
       }
     } catch (error) {
-      debugPrint(error.toString());
+      ConstantItems.toastMessage(
+        error.toString(),
+      );
     }
   }
 
   static void facebookLogout(BuildContext context) async {
+    Prefs.setBool('isLogin', false);
+    Prefs.setString('loginBy', '');
     await FirebaseAuth.instance.signOut();
     await FacebookAuth.instance.logOut().then((value) =>
         Navigator.pushReplacement(context,
@@ -73,9 +89,9 @@ class LoginUtils {
 
 //Code for Google
   static googleLogin(BuildContext context) async {
-    GoogleSignIn _googleSignIn = GoogleSignIn();
+    GoogleSignIn googleSignIn = GoogleSignIn();
     try {
-      var reslut = await _googleSignIn.signIn();
+      var reslut = await googleSignIn.signIn();
       if (reslut == null) {
         return;
       }
@@ -83,35 +99,67 @@ class LoginUtils {
       final credential = GoogleAuthProvider.credential(
           accessToken: userData.accessToken, idToken: userData.idToken);
 
-      var finalResult = await FirebaseAuth.instance
+      await FirebaseAuth.instance
           .signInWithCredential(credential)
-          .then((value) => FirebaseFirestore.instance
-                  .collection('UserData')
-                  .doc(FirebaseAuth.instance.currentUser!.uid)
-                  .set({
-                'email': FirebaseAuth.instance.currentUser!.email,
-                'imageurl': FirebaseAuth.instance.currentUser!.photoURL,
-                'name': FirebaseAuth.instance.currentUser!.displayName,
-                'phone': FirebaseAuth.instance.currentUser!.phoneNumber
-              }))
+          .then((value) async {
+            if (userData != null) {
+              String uid = FirebaseAuth.instance.currentUser!.uid;
+              UserModel newUser = UserModel(
+                  uid: FirebaseAuth.instance.currentUser!.uid,
+                  name: FirebaseAuth.instance.currentUser!.displayName,
+                  email: FirebaseAuth.instance.currentUser!.email ??
+                      FirebaseAuth.instance.currentUser!.providerData[0].email,
+                  phone: FirebaseAuth.instance.currentUser!.phoneNumber,
+                  imageurl: FirebaseAuth.instance.currentUser!.photoURL);
+              await FirebaseFirestore.instance
+                  .collection("users")
+                  .doc(uid)
+                  .set(newUser.toMap())
+                  .then((value) => print("UserStored"));
+            }
+          })
+          .whenComplete(
+            () async {
+              await Prefs.setBool('isLogin', true);
+              Prefs.setString('loginBy', 'google');
+              await Prefs.setString(
+                  'email',
+                  FirebaseAuth.instance.currentUser!.email ??
+                      FirebaseAuth.instance.currentUser!.providerData[0].email
+                          .toString());
+              await Prefs.setString('name',
+                  FirebaseAuth.instance.currentUser!.displayName.toString());
+              await Prefs.setString('imageurl',
+                  FirebaseAuth.instance.currentUser!.photoURL.toString());
+              await Prefs.setInt('phone', 0);
+            },
+          )
           .then((value) => Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (context) => HomePage())));
+              context, MaterialPageRoute(builder: (context) => HomePage())))
+          .onError((error, stackTrace) =>
+              ConstantItems.toastMessage(error.toString()));
     } catch (error) {
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const LoginPage()));
+      ConstantItems.toastMessage(error.toString());
+      ConstantItems.navigatorPushReplacement(context, const LoginPage());
     }
   }
 
   static Future<void> googleLogout(BuildContext context) async {
-    await GoogleSignIn().signOut();
+    Prefs.setBool('isLogin', false);
+    Prefs.setString('loginBy', '');
     await GoogleSignIn().disconnect();
-    await FirebaseAuth.instance.signOut().then((value) =>
+    await FirebaseAuth.instance.signOut();
+    await FacebookAuth.instance.logOut().then((value) =>
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) => const LoginPage())));
   }
 
-//Firebase User DataStore,
-  static Future dataUpload(UserSignUpModel user) async {
-    await FirebaseFirestore.instance.collection('UserData').add(user.toMap());
+//Logout By Phone
+  static Future<void> phoneSignOut(context) async {
+    Prefs.setBool('isLogin', false);
+    Prefs.setString('loginBy', '');
+    await FirebaseAuth.instance.signOut().then((value) =>
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => const LoginPage())));
   }
 }

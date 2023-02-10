@@ -1,16 +1,13 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first, unnecessary_null_in_if_null_operators
-import 'package:firebase_auth/firebase_auth.dart';
+// ignore_for_file: public_member_api_docs, sort_constructors_first, unnecessary_null_in_if_null_operators, unnecessary_null_comparison
 import 'package:flutter/material.dart';
 import 'package:google_fb_task/utils/firebase_email_Signup.dart';
-
 import 'package:google_fb_task/utils/login_utils.dart';
+import 'package:google_fb_task/utils/shared_pref_services.dart';
 import 'package:google_fb_task/widget/background_decoration.dart';
 
 class HomePage extends StatefulWidget {
-  String? fbImageUrl;
-  HomePage({
+  const HomePage({
     Key? key,
-    this.fbImageUrl,
   }) : super(key: key);
 
   @override
@@ -18,11 +15,29 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  var firebaseInstanceVar = FirebaseAuth.instance.currentUser;
+  String userName = '';
+  String userEmail = '';
+  int userPhone = 0;
+  String userProfile = '';
+  String loginBy = '';
+
+  //var firebaseInstanceVar = FirebaseAuth.instance.currentUser;
 
   @override
   void initState() {
     super.initState();
+    getUserDetails();
+  }
+
+  void getUserDetails() async {
+    setState(() {
+      loginBy = Prefs.getString('loginBy', '')!;
+      userName = Prefs.getString('name', '')!;
+      userEmail = Prefs.getString('email', '')!;
+      userProfile = Prefs.getString('imageurl', '')!;
+      userPhone = Prefs.getInt('phone', 0)!;
+    });
+    print(userEmail);
   }
 
   @override
@@ -59,11 +74,13 @@ class _HomePageState extends State<HomePage> {
                                         radius: 60,
                                         child: CircleAvatar(
                                           backgroundImage: NetworkImage(
-                                            (firebaseInstanceVar!.photoURL !=
-                                                    null)
-                                                ? firebaseInstanceVar!.photoURL
-                                                    .toString()
-                                                : 'https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_960_720.png',
+                                            // (firebaseInstanceVar!.photoURL !=
+                                            //         null)For Data Retrive From Firebse
+                                            (userProfile == 'null' ||
+                                                    userProfile == null ||
+                                                    userProfile == '')
+                                                ? 'https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_960_720.png'
+                                                : userProfile,
                                           ),
                                           radius: 55,
                                         )),
@@ -72,9 +89,13 @@ class _HomePageState extends State<HomePage> {
                                     height: 20,
                                   ),
                                   Text(
-                                    (firebaseInstanceVar!.displayName != null)
-                                        ? "Name: ${firebaseInstanceVar!.displayName}"
-                                        : '',
+                                    // (firebaseInstanceVar!.displayName != null) For Data Retrive From Firebse
+
+                                    (userName == 'null' ||
+                                            userName == null ||
+                                            userName == '')
+                                        ? ""
+                                        : "Name: $userName",
                                     style: TextStyle(
                                       fontSize: 30.0,
                                       fontWeight: FontWeight.bold,
@@ -96,9 +117,12 @@ class _HomePageState extends State<HomePage> {
                                     height: 8,
                                   ),
                                   Text(
-                                    (firebaseInstanceVar!.email != null)
-                                        ? "Email: ${firebaseInstanceVar!.email}"
-                                        : '',
+                                    //(firebaseInstanceVar!.email != null) For Data Retrive From Firebse
+                                    (userEmail == 'null' ||
+                                            userEmail == null ||
+                                            userEmail == '')
+                                        ? " "
+                                        : "Email: $userEmail",
                                     style: TextStyle(
                                       fontSize: 18.0,
                                       fontWeight: FontWeight.bold,
@@ -119,9 +143,12 @@ class _HomePageState extends State<HomePage> {
                                     height: 8,
                                   ),
                                   Text(
-                                    (firebaseInstanceVar!.phoneNumber != null)
-                                        ? "Phone: ${firebaseInstanceVar!.phoneNumber}"
-                                        : '',
+                                    //(firebaseInstanceVar!.phoneNumber != null) For Data Retrive From Firebse
+                                    (userPhone != 0 ||
+                                            userPhone == null ||
+                                            userPhone == '')
+                                        ? "Phone: $userPhone"
+                                        : "",
                                     style: TextStyle(
                                       fontSize: 18.0,
                                       fontWeight: FontWeight.bold,
@@ -151,9 +178,16 @@ class _HomePageState extends State<HomePage> {
                                     ])),
                                     child: ElevatedButton(
                                       onPressed: () {
-                                        LoginUtils.googleLogout(context);
-                                        LoginUtils.facebookLogout(context);
-                                        AuthenticationHelper().signOut();
+                                        if (loginBy == 'google') {
+                                          LoginUtils.googleLogout(context);
+                                        } else if (loginBy == 'facebook') {
+                                          LoginUtils.facebookLogout(context);
+                                        } else if (loginBy == 'phone') {
+                                          LoginUtils.phoneSignOut(context);
+                                        } else {
+                                          AuthenticationHelper()
+                                              .signOut(context);
+                                        }
                                       },
                                       style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.transparent,

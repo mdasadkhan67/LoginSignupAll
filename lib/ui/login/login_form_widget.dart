@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fb_task/const/const.dart';
-import 'package:google_fb_task/ui/home_page.dart';
 import 'package:google_fb_task/ui/phoneAuth/login_phone_page.dart';
 import 'package:google_fb_task/ui/signup/signup_page.dart';
 import 'package:google_fb_task/utils/firebase_email_Signup.dart';
@@ -116,13 +115,10 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
               GestureDetector(
                 onTap: (() {
                   if (_formKey.currentState!.validate()) {
-                    AuthenticationHelper()
-                        .signIn(
-                          email: emailController.text,
-                          password: passwordController.text,
-                        )
-                        .then((value) => ConstantItems.navigatorPushReplacement(
-                            context, HomePage()));
+                    AuthenticationHelper().signIn(
+                        email: emailController.text,
+                        password: passwordController.text,
+                        context: context);
                   }
                 }),
                 child: RadientButton(btnName: "Login"),
@@ -176,36 +172,12 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
                 height: 30,
               ),
               InkWell(
-                onTap: (() {
-                  ConstantItems.navigatorPush(context, const SignUpPage());
-                }),
-                child: Container(
-                  alignment: Alignment.center,
-                  width: 70,
-                  height: 30,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: [
-                        Color(0xFF8A2387),
-                        Color(0xFFE94057),
-                        Color(0xFFF27121),
-                      ],
-                    ),
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      'Sign Up',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 8,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-              ),
+                  onTap: (() {
+                    ConstantItems.navigatorPush(context, const SignUpPage());
+                  }),
+                  child: RadientButton(
+                    btnName: "SingUp",
+                  )),
             ],
           ),
         ));

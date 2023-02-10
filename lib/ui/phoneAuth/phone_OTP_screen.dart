@@ -2,8 +2,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fb_task/const/const.dart';
+import 'package:google_fb_task/model/user_signup_model.dart';
 import 'package:google_fb_task/ui/home_page.dart';
+import 'package:google_fb_task/ui/login/login_page.dart';
 import 'package:google_fb_task/ui/phoneAuth/login_phone_page.dart';
+import 'package:google_fb_task/utils/shared_pref_services.dart';
+import 'package:google_fb_task/widget/background_decoration.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
 class OTPScreen extends StatefulWidget {
@@ -37,8 +42,6 @@ class _OTPScreenState extends State<OTPScreen> {
         setState(() {
           otpController.text = credential.smsCode.toString();
         });
-        print(
-            "++++++++++++++++++++++++ ${FirebaseAuth.instance.currentUser!.phoneNumber.toString()}");
       },
       verificationFailed: (FirebaseAuthException e) {},
       codeSent: (String verificationId, int? resendToken) {
@@ -70,12 +73,6 @@ class _OTPScreenState extends State<OTPScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              const SizedBox(
-                height: 50,
-              ),
-              const SizedBox(
-                height: 10,
-              ),
               Container(
                 width: 325,
                 height: 370,
@@ -85,6 +82,19 @@ class _OTPScreenState extends State<OTPScreen> {
                 ),
                 child: Column(
                   children: [
+                    const SizedBox(
+                      height: 60,
+                    ),
+                    const Text(
+                      "Phone Verification",
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 25,
+                    ),
                     Padding(
                       padding: const EdgeInsets.only(
                           left: 15.0, right: 15.0, top: 10.0),
@@ -98,7 +108,7 @@ class _OTPScreenState extends State<OTPScreen> {
                             fieldWidth: 40,
                             borderWidth: 1,
                           ),
-                          textStyle: TextStyle(color: Colors.amberAccent),
+                          textStyle: const TextStyle(color: Colors.blue),
                           dialogConfig: DialogConfig(),
                           appContext: context,
                           length: 6,
@@ -115,48 +125,105 @@ class _OTPScreenState extends State<OTPScreen> {
                                   smsCode: otpController.text);
                           await auth
                               .signInWithCredential(credential)
-                              .then((value) => FirebaseFirestore.instance
-                                      .collection('UserData')
-                                      .add({
-                                    'email': FirebaseAuth
-                                        .instance.currentUser!.email,
-                                    'imageurl': FirebaseAuth
-                                        .instance.currentUser!.photoURL,
-                                    'name': FirebaseAuth
-                                        .instance.currentUser!.displayName,
-                                    'phone': FirebaseAuth
+                              .whenComplete(() {
+                                Prefs.setBool('isLogin', true);
+                                Prefs.setString('loginBy', 'phone');
+                                Prefs.setInt(
+                                    'phone',
+                                    int.parse(FirebaseAuth
                                         .instance.currentUser!.phoneNumber
-                                  }))
+                                        .toString()));
+                                Prefs.setString(
+                                    'imageurl',
+                                    FirebaseAuth.instance.currentUser!.photoURL
+                                        .toString());
+                                Prefs.setString(
+                                    'email',
+                                    FirebaseAuth.instance.currentUser!.email
+                                        .toString());
+                                Prefs.setString(
+                                    'name',
+                                    FirebaseAuth
+                                        .instance.currentUser!.displayName
+                                        .toString());
+                              })
+                              .then(
+                                (value) async {
+                                  if (credential != null) {
+                                    String uid = auth.currentUser!.uid;
+                                    UserModel newUser = UserModel(
+                                      uid: uid,
+                                      name: FirebaseAuth
+                                          .instance.currentUser!.displayName,
+                                      email: FirebaseAuth
+                                              .instance.currentUser!.email ??
+                                          FirebaseAuth.instance.currentUser!
+                                              .providerData[0].email,
+                                      phone: FirebaseAuth
+                                          .instance.currentUser!.phoneNumber,
+                                      imageurl: FirebaseAuth
+                                          .instance.currentUser!.photoURL,
+                                    );
+                                    await FirebaseFirestore.instance
+                                        .collection("users")
+                                        .doc(uid)
+                                        .set(newUser.toMap())
+                                        .then((value) => print("UserStored"));
+                                  }
+                                },
+                              )
                               .whenComplete(() => Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) => HomePage()),
-                                  ));
+                                  ))
+                              .onError((error, stackTrace) =>
+                                  ConstantItems.toastMessage("$error"))
+                              .then((value) => ConstantItems.navigatorPush(
+                                  context, const LoginPage()));
                         } catch (e) {
-                          print(e);
+                          ConstantItems.toastMessage("$e").then((value) =>
+                              ConstantItems.navigatorPush(
+                                  context, const LoginPage()));
                         }
                       },
                       child: Container(
                         alignment: Alignment.center,
                         width: 250,
-                        decoration: const BoxDecoration(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(50),
-                          ),
-                          gradient: LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: [
-                              Color(0xFF8A2387),
-                              Color(0xFFE94057),
-                              Color(0xFFF27121),
-                            ],
-                          ),
-                        ),
+                        decoration: BackgroundWidget(),
                         child: const Padding(
                           padding: EdgeInsets.all(12.0),
                           child: Text(
                             'VERIFY',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 12,
+                    ),
+                    GestureDetector(
+                      onTap: () async {
+                        try {
+                          sendFirebaseOtpVerify();
+                        } catch (e) {
+                          ConstantItems.toastMessage("$e").then((value) =>
+                              ConstantItems.navigatorPush(
+                                  context, PhoneLoginScreen()));
+                        }
+                      },
+                      child: Container(
+                        alignment: Alignment.center,
+                        width: 250,
+                        decoration: BackgroundWidget(),
+                        child: const Padding(
+                          padding: EdgeInsets.all(12.0),
+                          child: Text(
+                            'Resend OTP',
                             style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 20,

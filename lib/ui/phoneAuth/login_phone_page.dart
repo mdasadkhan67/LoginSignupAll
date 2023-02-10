@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fb_task/const/const.dart';
 import 'package:google_fb_task/ui/phoneAuth/phone_OTP_screen.dart';
 import 'package:google_fb_task/ui/signup/signup_page.dart';
 import 'package:google_fb_task/utils/login_utils.dart';
+import 'package:google_fb_task/widget/background_decoration.dart';
+import 'package:google_fb_task/widget/button_gradiant.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 
 class PhoneLoginScreen extends StatefulWidget {
@@ -17,26 +19,16 @@ class PhoneLoginScreen extends StatefulWidget {
 }
 
 class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  TextEditingController phoneTEC = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    TextEditingController phoneTEC = TextEditingController();
-
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.purpleAccent,
-                Colors.amber,
-                Colors.blue,
-              ],
-            ),
-          ),
+          decoration: BackgroundWidget(),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -49,12 +41,13 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
               ),
               Container(
                 width: 325,
-                height: 370,
+                height: 400,
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.all(Radius.circular(15)),
                 ),
                 child: Form(
+                  key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -75,6 +68,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                         width: 260,
                         height: 77,
                         child: IntlPhoneField(
+                          keyboardType: TextInputType.phone,
                           cursorColor: Colors.purple,
                           initialCountryCode: 'IN',
                           decoration: const InputDecoration(
@@ -87,6 +81,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           onChanged: (phone) {
                             PhoneLoginScreen.userPhoneNumber =
                                 phone.completeNumber;
+                            _formKey.currentState?.validate();
                           },
                           onCountryChanged: (country) {},
                         ),
@@ -96,41 +91,24 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                       ),
                       GestureDetector(
                         onTap: () async {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    OTPScreen(otpAutofillText: phoneTEC.text),
-                              ));
-                          Fluttertoast.showToast(
-                              msg: 'Verification code will be send soon ');
+                          if (_formKey.currentState!.validate()) {
+                            ConstantItems.navigatorPush(context,
+                                OTPScreen(otpAutofillText: phoneTEC.text));
+                            ConstantItems.toastMessage(
+                                'Verification code will be send soon ');
+                          }
                         },
                         child: Container(
                           alignment: Alignment.center,
                           width: 250,
-                          decoration: const BoxDecoration(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(50),
-                            ),
-                            gradient: LinearGradient(
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                              colors: [
-                                Color(0xFF8A2387),
-                                Color(0xFFE94057),
-                                Color(0xFFF27121),
-                              ],
-                            ),
-                          ),
-                          child: const Padding(
-                            padding: EdgeInsets.all(12.0),
-                            child: Text(
-                              'Get OTP',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold),
-                            ),
+                          decoration: BackgroundWidget(),
+                          padding: const EdgeInsets.all(12.0),
+                          child: const Text(
+                            'Get OTP',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -167,11 +145,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                           ),
                           IconButton(
                             onPressed: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => PhoneLoginScreen()),
-                              );
+                              ConstantItems.navigatorPush(
+                                  context, PhoneLoginScreen());
                             },
                             icon: const Icon(
                               FontAwesomeIcons.mobile,
@@ -186,39 +161,13 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                         height: 30,
                       ),
                       InkWell(
-                        onTap: (() {
-                          Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const SignUpPage()));
-                        }),
-                        child: Container(
-                          alignment: Alignment.center,
-                          width: 70,
-                          height: 30,
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                              colors: [
-                                Color(0xFF8A2387),
-                                Color(0xFFE94057),
-                                Color(0xFFF27121),
-                              ],
-                            ),
-                          ),
-                          child: const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text(
-                              'Sign Up',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      ),
+                          onTap: (() {
+                            ConstantItems.navigatorPushReplacement(
+                                context, const SignUpPage());
+                          }),
+                          child: RadientButton(
+                            btnName: "SignUp",
+                          )),
                     ],
                   ),
                 ),

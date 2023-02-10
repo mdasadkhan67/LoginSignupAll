@@ -224,18 +224,12 @@ class _SignUpFormWidgetState extends State<SignUpFormWidget> {
                 GestureDetector(
                     onTap: () {
                       if (_formKey.currentState!.validate()) {
-                        AuthenticationHelper()
-                            .signUp(
+                        AuthenticationHelper().signUp(
+                          context: context,
                           name: nameController.text,
                           email: emailController.text,
                           password: passwordController.text,
-                        )
-                            .then((result) {
-                          if (result == null) {
-                            ConstantItems.navigatorPushReplacement(
-                                context, HomePage());
-                          }
-                        });
+                        );
                       }
                     },
                     child: RadientButton(

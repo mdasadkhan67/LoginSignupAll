@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fb_task/utils/shared_pref_services.dart';
 import 'package:google_fb_task/utils/splash_method.dart';
 
 class SpalashScreen extends StatefulWidget {
@@ -11,9 +12,14 @@ class SpalashScreen extends StatefulWidget {
 }
 
 class _SpalashScreenState extends State<SpalashScreen> {
+  initializeGlobalPrefs() async {
+    await Prefs.init();
+  }
+
   @override
   void initState() {
     super.initState();
+    //initializeGlobalPrefs();
     SplashRedirect.usedFuture(context);
   }
 
@@ -29,18 +35,6 @@ class _SpalashScreenState extends State<SpalashScreen> {
               'assets/images/abc.png',
               width: 300,
               height: 150,
-            ),
-            const SizedBox(),
-            const Align(
-              alignment: Alignment.center,
-              child: Text(
-                "Login Task",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 25,
-                ),
-              ),
             ),
           ],
         ),
