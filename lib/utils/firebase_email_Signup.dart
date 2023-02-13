@@ -2,18 +2,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fb_task/const/const.dart';
 import 'package:google_fb_task/model/user_signup_model.dart';
-import 'package:google_fb_task/ui/home_page.dart';
+import 'package:google_fb_task/ui/chathomescreen/chaht_home_screen.dart';
 import 'package:google_fb_task/ui/login/login_page.dart';
+import 'package:google_fb_task/ui/profile_screen/profile_screen.dart';
 import 'package:google_fb_task/utils/shared_pref_services.dart';
 
 class AuthenticationHelper {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   get user => _auth.currentUser;
-
   Future signUp({
     context,
     String? name,
     String? email,
+    String phone = '',
     String? password,
     String? imageurl,
   }) async {
@@ -28,17 +29,17 @@ class AuthenticationHelper {
         if (_auth != null) {
           String uid = _auth.currentUser!.uid;
           UserModel newUser = UserModel(
-              uid: uid, name: name, email: email, phone: "", imageurl: "");
+              uid: uid, name: name, email: email, phone: phone, imageurl: "");
           await FirebaseFirestore.instance
               .collection("users")
               .doc(uid)
-              .set(newUser.toMap())
-              .then((value) => print("UserStored"));
+              .set(newUser.toMap());
         }
       }).then((value) async {
         await Prefs.setBool('isLogin', true);
         Prefs.setString('loginBy', 'email');
         await Prefs.setString('email', email);
+        await Prefs.setString('phone', phone.toString());
         await Prefs.setString('password', password);
         await Prefs.setString('name', '');
         await Prefs.setString('imageurl', '');
@@ -50,7 +51,20 @@ class AuthenticationHelper {
             'https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_960_720.png');
       }).then((result) {
         if (result == null) {
-          ConstantItems.navigatorPushReplacement(context, const HomePage());
+          ConstantItems.navigatorPushReplacement(
+            context,
+            ProfileScreen(
+              userModel: UserModel(
+                uid: FirebaseAuth.instance.currentUser!.uid,
+                email:
+                    FirebaseAuth.instance.currentUser!.providerData[0].email ??
+                        FirebaseAuth.instance.currentUser!.email,
+                imageurl: '',
+                name: '',
+                phone: phone,
+              ),
+            ),
+          );
         } else {
           ConstantItems.toastMessage(
               "User already registerd with the same Email Id");
@@ -89,7 +103,7 @@ class AuthenticationHelper {
             await FirebaseAuth.instance.currentUser!.updatePassword(password);
           })
           .then((value) =>
-              ConstantItems.navigatorPushReplacement(context, HomePage()))
+              ConstantItems.navigatorPushReplacement(context, ChatHomePage()))
           .onError(
             (error, stackTrace) => ConstantItems.toastMessage("User not found"),
           );

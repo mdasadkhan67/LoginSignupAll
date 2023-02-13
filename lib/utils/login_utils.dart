@@ -1,11 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_fb_task/const/const.dart';
 import 'package:google_fb_task/model/user_signup_model.dart';
-import 'package:google_fb_task/ui/home_page.dart';
 import 'package:google_fb_task/ui/login/login_page.dart';
+import 'package:google_fb_task/ui/profile_screen/profile_screen.dart';
 import 'package:google_fb_task/utils/shared_pref_services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -43,27 +42,21 @@ class LoginUtils {
 
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => HomePage()),
+              MaterialPageRoute(
+                  builder: (context) => ProfileScreen(
+                        userModel: UserModel(
+                          uid: FirebaseAuth.instance.currentUser!.uid,
+                          email: FirebaseAuth.instance.currentUser!.email,
+                          imageurl: '',
+                          name: '',
+                          phone:
+                              FirebaseAuth.instance.currentUser!.phoneNumber ??
+                                  '',
+                        ),
+                      )),
             );
           },
-          //Pest Your Google Instance Code Here
-        ).then((value) async {
-          if (userData != null) {
-            String uid = FirebaseAuth.instance.currentUser!.uid;
-            UserModel newUser = UserModel(
-                uid: FirebaseAuth.instance.currentUser!.uid,
-                name: FirebaseAuth.instance.currentUser!.displayName,
-                email: FirebaseAuth.instance.currentUser!.email ??
-                    FirebaseAuth.instance.currentUser!.providerData[0].email,
-                phone: FirebaseAuth.instance.currentUser!.phoneNumber,
-                imageurl: FirebaseAuth.instance.currentUser!.photoURL);
-            await FirebaseFirestore.instance
-                .collection("users")
-                .doc(uid)
-                .set(newUser.toMap())
-                .then((value) => print("UserStored"));
-          }
-        }).onError(
+        ).onError(
           (error, stackTrace) {
             ConstantItems.toastMessage(
               error.toString(),
@@ -105,12 +98,13 @@ class LoginUtils {
             if (userData != null) {
               String uid = FirebaseAuth.instance.currentUser!.uid;
               UserModel newUser = UserModel(
-                  uid: FirebaseAuth.instance.currentUser!.uid,
-                  name: FirebaseAuth.instance.currentUser!.displayName,
-                  email: FirebaseAuth.instance.currentUser!.email ??
-                      FirebaseAuth.instance.currentUser!.providerData[0].email,
-                  phone: FirebaseAuth.instance.currentUser!.phoneNumber,
-                  imageurl: FirebaseAuth.instance.currentUser!.photoURL);
+                uid: FirebaseAuth.instance.currentUser!.uid,
+                name: FirebaseAuth.instance.currentUser!.displayName,
+                email: FirebaseAuth.instance.currentUser!.email ??
+                    FirebaseAuth.instance.currentUser!.providerData[0].email,
+                phone: FirebaseAuth.instance.currentUser!.phoneNumber,
+                imageurl: FirebaseAuth.instance.currentUser!.photoURL,
+              );
               await FirebaseFirestore.instance
                   .collection("users")
                   .doc(uid)
@@ -135,7 +129,22 @@ class LoginUtils {
             },
           )
           .then((value) => Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (context) => HomePage())))
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ProfileScreen(
+                          userModel: UserModel(
+                            uid: FirebaseAuth.instance.currentUser!.uid,
+                            email: FirebaseAuth.instance.currentUser!
+                                    .providerData[0].email ??
+                                FirebaseAuth.instance.currentUser!.email,
+                            imageurl: '',
+                            name: '',
+                            phone: FirebaseAuth
+                                    .instance.currentUser!.phoneNumber ??
+                                '',
+                          ),
+                        )),
+              ))
           .onError((error, stackTrace) =>
               ConstantItems.toastMessage(error.toString()));
     } catch (error) {

@@ -4,9 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fb_task/const/const.dart';
 import 'package:google_fb_task/model/user_signup_model.dart';
+import 'package:google_fb_task/ui/chathomescreen/chaht_home_screen.dart';
 import 'package:google_fb_task/ui/home_page.dart';
 import 'package:google_fb_task/ui/login/login_page.dart';
 import 'package:google_fb_task/ui/phoneAuth/login_phone_page.dart';
+import 'package:google_fb_task/ui/profile_screen/profile_screen.dart';
 import 'package:google_fb_task/utils/shared_pref_services.dart';
 import 'package:google_fb_task/widget/background_decoration.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
@@ -175,7 +177,19 @@ class _OTPScreenState extends State<OTPScreen> {
                               .whenComplete(() => Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => HomePage()),
+                                        builder: (context) => ProfileScreen(
+                                              userModel: UserModel(
+                                                uid: FirebaseAuth
+                                                    .instance.currentUser!.uid,
+                                                email: FirebaseAuth.instance
+                                                        .currentUser!.email ??
+                                                    '',
+                                                imageurl: '',
+                                                name: '',
+                                                phone: FirebaseAuth.instance
+                                                    .currentUser!.phoneNumber,
+                                              ),
+                                            )),
                                   ))
                               .onError((error, stackTrace) =>
                                   ConstantItems.toastMessage("$error"))
