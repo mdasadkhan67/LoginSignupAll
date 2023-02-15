@@ -4,8 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fb_task/const/const.dart';
 import 'package:google_fb_task/model/user_signup_model.dart';
-import 'package:google_fb_task/ui/chathomescreen/chaht_home_screen.dart';
-import 'package:google_fb_task/ui/home_page.dart';
+import 'package:google_fb_task/ui/chathomescreen/chat_home_page.dart';
 import 'package:google_fb_task/ui/login/login_page.dart';
 import 'package:google_fb_task/ui/phoneAuth/login_phone_page.dart';
 import 'package:google_fb_task/ui/profile_screen/profile_screen.dart';
@@ -31,7 +30,6 @@ class _OTPScreenState extends State<OTPScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     otpController.text = widget.otpAutofillText;
     sendFirebaseOtpVerify();
@@ -127,77 +125,84 @@ class _OTPScreenState extends State<OTPScreen> {
                                   smsCode: otpController.text);
                           await auth
                               .signInWithCredential(credential)
-                              .whenComplete(() {
+                              .whenComplete(() async {
                                 Prefs.setBool('isLogin', true);
                                 Prefs.setString('loginBy', 'phone');
-                                Prefs.setInt(
-                                    'phone',
-                                    int.parse(FirebaseAuth
-                                        .instance.currentUser!.phoneNumber
-                                        .toString()));
-                                Prefs.setString(
-                                    'imageurl',
-                                    FirebaseAuth.instance.currentUser!.photoURL
-                                        .toString());
-                                Prefs.setString(
-                                    'email',
-                                    FirebaseAuth.instance.currentUser!.email
-                                        .toString());
-                                Prefs.setString(
-                                    'name',
-                                    FirebaseAuth
-                                        .instance.currentUser!.displayName
-                                        .toString());
                               })
                               .then(
                                 (value) async {
-                                  if (credential != null) {
-                                    String uid = auth.currentUser!.uid;
-                                    UserModel newUser = UserModel(
-                                      uid: uid,
-                                      name: FirebaseAuth
-                                          .instance.currentUser!.displayName,
-                                      email: FirebaseAuth
-                                              .instance.currentUser!.email ??
-                                          FirebaseAuth.instance.currentUser!
-                                              .providerData[0].email,
-                                      phone: FirebaseAuth
-                                          .instance.currentUser!.phoneNumber,
-                                      imageurl: FirebaseAuth
-                                          .instance.currentUser!.photoURL,
-                                    );
-                                    await FirebaseFirestore.instance
-                                        .collection("users")
-                                        .doc(uid)
-                                        .set(newUser.toMap())
-                                        .then((value) => print("UserStored"));
-                                  }
+                                  String uid = auth.currentUser!.uid;
+                                  UserModel newUser = UserModel(
+                                    uid: uid,
+                                    name: 'name : ${uid.toString()}',
+                                    email:
+                                        '${FirebaseAuth.instance.currentUser!.phoneNumber}@gmail.com',
+                                    phone: FirebaseAuth
+                                        .instance.currentUser!.phoneNumber,
+                                    imageurl:
+                                        'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
+                                  );
+                                  await FirebaseFirestore.instance
+                                      .collection("users")
+                                      .doc(uid)
+                                      .set(newUser.toMap());
                                 },
                               )
-                              .whenComplete(() => Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => ProfileScreen(
-                                              userModel: UserModel(
-                                                uid: FirebaseAuth
-                                                    .instance.currentUser!.uid,
-                                                email: FirebaseAuth.instance
-                                                        .currentUser!.email ??
-                                                    '',
-                                                imageurl: '',
-                                                name: '',
-                                                phone: FirebaseAuth.instance
-                                                    .currentUser!.phoneNumber,
-                                              ),
-                                            )),
-                                  ))
+                              .whenComplete(() async {
+                                if (Prefs.getBool('isLogin', false) != false) {
+                                  if (FirebaseAuth
+                                          .instance.currentUser!.photoURL !=
+                                      '') {
+                                    await Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => ChatHomeScreen(
+                                                userModel: UserModel(
+                                                  uid: FirebaseAuth.instance
+                                                      .currentUser!.uid,
+                                                  email:
+                                                      '${FirebaseAuth.instance.currentUser!.phoneNumber}@gmail.com',
+                                                  imageurl:
+                                                      'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
+                                                  name:
+                                                      'name : ${FirebaseAuth.instance.currentUser!.uid.toString()}',
+                                                  phone: FirebaseAuth.instance
+                                                      .currentUser!.phoneNumber,
+                                                ),
+                                              )),
+                                    );
+                                  } else {
+                                    await Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => ProfileScreen(
+                                                userModel: UserModel(
+                                                  uid: FirebaseAuth.instance
+                                                      .currentUser!.uid,
+                                                  email:
+                                                      '${FirebaseAuth.instance.currentUser!.phoneNumber}@gmail.com',
+                                                  imageurl:
+                                                      'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
+                                                  name:
+                                                      'name : ${FirebaseAuth.instance.currentUser!.uid.toString()}',
+                                                  phone: FirebaseAuth.instance
+                                                      .currentUser!.phoneNumber,
+                                                ),
+                                              )),
+                                    );
+                                  }
+                                } else {
+                                  ConstantItems.navigatorPushReplacement(
+                                      context, LoginPage());
+                                }
+                              })
                               .onError((error, stackTrace) =>
                                   ConstantItems.toastMessage("$error"))
                               .then((value) => ConstantItems.navigatorPush(
                                   context, const LoginPage()));
                         } catch (e) {
-                          ConstantItems.toastMessage("$e").then((value) =>
-                              ConstantItems.navigatorPush(
+                          ConstantItems.toastMessage(e.toString()).then(
+                              (value) => ConstantItems.navigatorPush(
                                   context, const LoginPage()));
                         }
                       },

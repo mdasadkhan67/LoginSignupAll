@@ -4,13 +4,13 @@ import 'package:google_fb_task/utils/login_utils.dart';
 import 'package:google_fb_task/utils/shared_pref_services.dart';
 
 class ChatScreenUtils {
-  String userName = '';
-  String userEmail = '';
-  int userPhone = 0;
-  String userProfile = '';
-  String loginBy = '';
+  static String userName = '';
+  static String userEmail = '';
+  static int userPhone = 0;
+  static String userProfile = '';
+  static String loginBy = '';
 
-  getPrefDataInIt() {
+  static getPrefDataInIt() {
     loginBy = Prefs.getString('loginBy', '')!;
     userName = Prefs.getString('name', '')!;
     userEmail = Prefs.getString('email', '')!;
@@ -18,7 +18,7 @@ class ChatScreenUtils {
     userPhone = Prefs.getInt('phone', 0)!;
   }
 
-  logOut(BuildContext context) {
+  static logOut(BuildContext context) {
     return (() {
       if (loginBy == 'google') {
         LoginUtils.googleLogout(context);

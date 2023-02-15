@@ -9,7 +9,7 @@ class ConstantItems {
 //Toast Message
   static toastMessage(String message) {
     Fluttertoast.showToast(
-        msg: "$message",
+        msg: message,
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         timeInSecForIosWeb: 1,
@@ -34,8 +34,7 @@ class ConstantItems {
     BuildContext context,
     Widget widgetName,
   ) {
-    Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => widgetName))
+    Navigator.push(context, MaterialPageRoute(builder: (context) => widgetName))
         .onError((error, stackTrace) =>
             (error, stackTrace) => ConstantItems.toastMessage("$error"));
   }

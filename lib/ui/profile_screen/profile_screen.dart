@@ -6,8 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fb_task/const/const.dart';
-import 'package:google_fb_task/ui/chathomescreen/chaht_home_screen.dart';
-import 'package:google_fb_task/utils/shared_pref_services.dart';
+import 'package:google_fb_task/ui/chathomescreen/chat_home_page.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fb_task/model/user_signup_model.dart';
@@ -100,14 +99,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
     String name = fullNameTEC.text.trim();
     widget.userModel!.imageurl = imageUrl;
     widget.userModel!.name = name;
-    await Prefs.setString('imageurl', imageUrl);
-    await Prefs.setString('name', name);
     await FirebaseFirestore.instance
         .collection("users")
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .set(widget.userModel!.toMap())
+        .then((value) {
+          FirebaseAuth.instance.currentUser!
+              .updateDisplayName(widget.userModel!.name.toString());
+          FirebaseAuth.instance.currentUser!
+              .updatePhotoURL(widget.userModel!.imageurl.toString());
+        })
         .whenComplete(() => ConstantItems.navigatorPushReplacement(
-            context, const ChatHomePage()))
+            context,
+            ChatHomeScreen(
+              userModel: UserModel(
+                  uid: FirebaseAuth.instance.currentUser!.uid,
+                  name: name,
+                  email: FirebaseAuth
+                          .instance.currentUser!.providerData[0].email ??
+                      FirebaseAuth.instance.currentUser!.email,
+                  phone: FirebaseAuth.instance.currentUser!.phoneNumber ?? '',
+                  imageurl: imageUrl),
+            )))
         .onError((error, stackTrace) =>
             ConstantItems.toastMessage(error.toString()));
   }

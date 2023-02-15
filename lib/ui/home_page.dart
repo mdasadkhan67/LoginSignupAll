@@ -37,7 +37,6 @@ class _HomePageState extends State<HomePage> {
       userProfile = Prefs.getString('imageurl', '')!;
       userPhone = Prefs.getInt('phone', 0)!;
     });
-    print(userEmail);
   }
 
   @override

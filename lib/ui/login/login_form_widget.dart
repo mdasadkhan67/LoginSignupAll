@@ -1,10 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fb_task/const/const.dart';
 import 'package:google_fb_task/model/user_signup_model.dart';
-import 'package:google_fb_task/ui/chathomescreen/chaht_home_screen.dart';
+import 'package:google_fb_task/ui/chatsearchscreen/chaht_search_screen.dart';
 import 'package:google_fb_task/ui/phoneAuth/login_phone_page.dart';
-import 'package:google_fb_task/ui/profile_screen/profile_screen.dart';
 import 'package:google_fb_task/ui/signup/signup_page.dart';
 import 'package:google_fb_task/utils/firebase_email_Signup.dart';
 import 'package:google_fb_task/utils/login_utils.dart';
@@ -34,7 +35,17 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
           ),
           InkWell(
             onTap: () {
-              ConstantItems.navigatorPush(context, ChatHomePage());
+              ConstantItems.navigatorPush(
+                  context,
+                  ChatHomePage(
+                    userModel: UserModel(
+                      uid: FirebaseAuth.instance.currentUser!.uid,
+                      name: FirebaseAuth.instance.currentUser!.displayName,
+                      email: FirebaseAuth.instance.currentUser!.email,
+                      phone: FirebaseAuth.instance.currentUser!.phoneNumber,
+                      imageurl: FirebaseAuth.instance.currentUser!.photoURL,
+                    ),
+                  ));
             },
             child: const Text(
               "Login",
