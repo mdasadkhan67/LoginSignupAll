@@ -41,12 +41,6 @@ class AuthenticationHelper {
               .set(newUser.toMap());
         }
       }).then((value) async {
-        // await Prefs.setString('email', email);
-        // await Prefs.setString('phone', phone.toString());
-        // await Prefs.setString('password', password);
-        // await Prefs.setString('name', '');
-        // await Prefs.setString('imageurl', '');
-        // await Prefs.setInt('phone', 0);
         Prefs.setBool('isLogin', true);
         Prefs.setString('loginBy', 'email');
         await FirebaseAuth.instance.currentUser!.updateEmail(email);
@@ -55,9 +49,9 @@ class AuthenticationHelper {
         await FirebaseAuth.instance.currentUser!.updatePhotoURL('');
       }).then((result) {
         if (result == null) {
+          isLoading.setIsLoadingFalse();
           if (Prefs.getBool('isLogin', false) != false) {
             if (FirebaseAuth.instance.currentUser!.photoURL == '') {
-              isLoading.setIsLoadingFalse();
               ConstantItems.navigatorPushReplacement(
                 context,
                 ProfileScreen(
@@ -73,7 +67,6 @@ class AuthenticationHelper {
                 ),
               );
             } else {
-              isLoading.setIsLoadingFalse();
               ConstantItems.navigatorPushReplacement(
                 context,
                 ChatHomeScreen(

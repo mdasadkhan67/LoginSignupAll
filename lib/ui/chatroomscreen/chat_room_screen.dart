@@ -8,6 +8,7 @@ import 'package:google_fb_task/utils/chat_screen_utils.dart';
 import 'package:google_fb_task/widget/background_decoration.dart';
 import 'package:uuid/uuid.dart';
 
+// ignore: must_be_immutable
 class ChatRoomPage extends StatefulWidget {
   final UserModel? targetUser;
   ChatRoom? chatRoom;
@@ -143,7 +144,9 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                 child: TextField(
                   maxLines: null,
                   controller: messageController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
+                    suffixIcon:
+                        IconButton(onPressed: () {}, icon: Icon(Icons.photo)),
                     border: InputBorder.none,
                     hintText: 'Enter message',
                   ),

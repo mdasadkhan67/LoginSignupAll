@@ -56,14 +56,13 @@ class LoginUtils {
                 .collection("users")
                 .doc(FirebaseAuth.instance.currentUser!.uid)
                 .set(newUser.toMap())
-                .then((value) => print("UserStored"))
                 .then((value) {
-              isLoading.setIsLoadingFalse();
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) {
-                  if (Prefs.getBool('isLogin', false) != false) {
-                    if (FirebaseAuth.instance.currentUser!.photoURL != '') {
+              if (Prefs.getBool('isLogin', false) != false) {
+                if (FirebaseAuth.instance.currentUser!.photoURL != '') {
+                  isLoading.setIsLoadingFalse();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) {
                       return ChatHomeScreen(
                         userModel: UserModel(
                           uid: FirebaseAuth.instance.currentUser!.uid,
@@ -75,7 +74,13 @@ class LoginUtils {
                                   '',
                         ),
                       );
-                    } else {
+                    }),
+                  );
+                } else {
+                  isLoading.setIsLoadingFalse();
+                  return Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) {
                       return ProfileScreen(
                         userModel: UserModel(
                           uid: FirebaseAuth.instance.currentUser!.uid,
@@ -87,12 +92,13 @@ class LoginUtils {
                                   '',
                         ),
                       );
-                    }
-                  } else {
-                    return LoginPage();
-                  }
-                }),
-              );
+                    }),
+                  );
+                }
+              } else {
+                isLoading.setIsLoadingFalse();
+                return LoginPage();
+              }
             });
           },
         ).onError(
@@ -155,27 +161,30 @@ class LoginUtils {
         }
       }).whenComplete(
         () async {
-          // await Prefs.setString(
-          //     'email',
-          //     FirebaseAuth.instance.currentUser!.email ??
-          //         FirebaseAuth.instance.currentUser!.providerData[0].email
-          //             .toString());
-          // await Prefs.setString('name',
-          //     FirebaseAuth.instance.currentUser!.displayName.toString());
-          // await Prefs.setString('imageurl',
-          //     FirebaseAuth.instance.currentUser!.photoURL.toString());
-          // await Prefs.setInt('phone', 0);
           Prefs.setBool('isLogin', true);
           Prefs.setString('loginBy', 'google');
         },
       ).then((value) {
         isLoading.setIsLoadingFalse();
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) {
-            if (Prefs.getBool('isLogin', false) != false) {
-              if (FirebaseAuth.instance.currentUser!.photoURL != '') {
-                return ChatHomeScreen(
+        if (Prefs.getBool('isLogin', false) != false) {
+          if (FirebaseAuth.instance.currentUser!.photoURL != '') {
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) {
+              return ChatHomeScreen(
+                  userModel: UserModel(
+                uid: FirebaseAuth.instance.currentUser!.uid,
+                email:
+                    FirebaseAuth.instance.currentUser!.providerData[0].email ??
+                        FirebaseAuth.instance.currentUser!.email,
+                imageurl: '',
+                name: '',
+                phone: FirebaseAuth.instance.currentUser!.phoneNumber ?? '',
+              ));
+            }));
+          } else {
+            ConstantItems.navigatorPushReplacement(
+                context,
+                ProfileScreen(
                   userModel: UserModel(
                     uid: FirebaseAuth.instance.currentUser!.uid,
                     email: FirebaseAuth
@@ -185,25 +194,11 @@ class LoginUtils {
                     name: '',
                     phone: FirebaseAuth.instance.currentUser!.phoneNumber ?? '',
                   ),
-                );
-              } else {
-                return ProfileScreen(
-                  userModel: UserModel(
-                    uid: FirebaseAuth.instance.currentUser!.uid,
-                    email: FirebaseAuth
-                            .instance.currentUser!.providerData[0].email ??
-                        FirebaseAuth.instance.currentUser!.email,
-                    imageurl: '',
-                    name: '',
-                    phone: FirebaseAuth.instance.currentUser!.phoneNumber ?? '',
-                  ),
-                );
-              }
-            } else {
-              return LoginPage();
-            }
-          }),
-        );
+                ));
+          }
+        } else {
+          return ConstantItems.navigatorPushReplacement(context, LoginPage());
+        }
       }).onError(
           (error, stackTrace) => ConstantItems.toastMessage(error.toString()));
     } catch (error) {
