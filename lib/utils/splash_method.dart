@@ -14,10 +14,22 @@ class SplashRedirect {
     Future.delayed(const Duration(seconds: 3), () {
       // if (firebaseInstaceVar != null) {
       if (Prefs.getBool('isLogin', false) != false) {
-        if (firebaseInstaceVar!.photoURL != '') {
+        if (firebaseInstaceVar!.photoURL == '') {
           ConstantItems.navigatorPushReplacement(
               context,
-              ChatHomeScreen(
+              ProfileScreen(
+                userModel: UserModel(
+                  uid: FirebaseAuth.instance.currentUser!.uid,
+                  name: FirebaseAuth.instance.currentUser!.displayName ?? '',
+                  email: FirebaseAuth.instance.currentUser!.email ?? '',
+                  phone: FirebaseAuth.instance.currentUser!.phoneNumber ?? '',
+                  imageurl: FirebaseAuth.instance.currentUser!.photoURL ?? '',
+                ),
+              ));
+        } else if (firebaseInstaceVar!.photoURL == null) {
+          ConstantItems.navigatorPushReplacement(
+              context,
+              ProfileScreen(
                 userModel: UserModel(
                   uid: FirebaseAuth.instance.currentUser!.uid,
                   name: FirebaseAuth.instance.currentUser!.displayName ?? '',
@@ -29,7 +41,7 @@ class SplashRedirect {
         } else {
           ConstantItems.navigatorPushReplacement(
               context,
-              ProfileScreen(
+              ChatHomeScreen(
                 userModel: UserModel(
                   uid: FirebaseAuth.instance.currentUser!.uid,
                   name: FirebaseAuth.instance.currentUser!.displayName ?? '',

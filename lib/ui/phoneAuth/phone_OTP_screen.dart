@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fb_task/const/const.dart';
 import 'package:google_fb_task/model/user_signup_model.dart';
+import 'package:google_fb_task/provider/isloading_provider.dart';
 import 'package:google_fb_task/ui/chathomescreen/chat_home_page.dart';
 import 'package:google_fb_task/ui/login/login_page.dart';
 import 'package:google_fb_task/ui/phoneAuth/login_phone_page.dart';
@@ -11,6 +12,7 @@ import 'package:google_fb_task/ui/profile_screen/profile_screen.dart';
 import 'package:google_fb_task/utils/shared_pref_services.dart';
 import 'package:google_fb_task/widget/background_decoration.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:provider/provider.dart';
 
 class OTPScreen extends StatefulWidget {
   String otpAutofillText;
@@ -119,6 +121,10 @@ class _OTPScreenState extends State<OTPScreen> {
                     GestureDetector(
                       onTap: () async {
                         try {
+                          final isLoading = Provider.of<IsLoadingProvider>(
+                              context,
+                              listen: false);
+                          isLoading.setIsLoadingTrue();
                           PhoneAuthCredential credential =
                               PhoneAuthProvider.credential(
                                   verificationId: PhoneLoginScreen.verify,
@@ -126,83 +132,106 @@ class _OTPScreenState extends State<OTPScreen> {
                           await auth
                               .signInWithCredential(credential)
                               .whenComplete(() async {
-                                Prefs.setBool('isLogin', true);
-                                Prefs.setString('loginBy', 'phone');
-                              })
-                              .then(
-                                (value) async {
-                                  String uid = auth.currentUser!.uid;
-                                  UserModel newUser = UserModel(
-                                    uid: uid,
-                                    name: 'name : ${uid.toString()}',
-                                    email:
-                                        '${FirebaseAuth.instance.currentUser!.phoneNumber}@gmail.com',
-                                    phone: FirebaseAuth
-                                        .instance.currentUser!.phoneNumber,
-                                    imageurl:
-                                        'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
-                                  );
-                                  await FirebaseFirestore.instance
-                                      .collection("users")
-                                      .doc(uid)
-                                      .set(newUser.toMap());
-                                },
-                              )
-                              .whenComplete(() async {
-                                if (Prefs.getBool('isLogin', false) != false) {
-                                  if (FirebaseAuth
-                                          .instance.currentUser!.photoURL !=
-                                      '') {
-                                    await Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => ChatHomeScreen(
-                                                userModel: UserModel(
-                                                  uid: FirebaseAuth.instance
-                                                      .currentUser!.uid,
-                                                  email:
-                                                      '${FirebaseAuth.instance.currentUser!.phoneNumber}@gmail.com',
-                                                  imageurl:
-                                                      'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
-                                                  name:
-                                                      'name : ${FirebaseAuth.instance.currentUser!.uid.toString()}',
-                                                  phone: FirebaseAuth.instance
-                                                      .currentUser!.phoneNumber,
-                                                ),
-                                              )),
-                                    );
-                                  } else {
-                                    await Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => ProfileScreen(
-                                                userModel: UserModel(
-                                                  uid: FirebaseAuth.instance
-                                                      .currentUser!.uid,
-                                                  email:
-                                                      '${FirebaseAuth.instance.currentUser!.phoneNumber}@gmail.com',
-                                                  imageurl:
-                                                      'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
-                                                  name:
-                                                      'name : ${FirebaseAuth.instance.currentUser!.uid.toString()}',
-                                                  phone: FirebaseAuth.instance
-                                                      .currentUser!.phoneNumber,
-                                                ),
-                                              )),
-                                    );
-                                  }
-                                } else {
-                                  ConstantItems.navigatorPushReplacement(
-                                      context, LoginPage());
-                                }
-                              })
-                              .onError((error, stackTrace) =>
-                                  ConstantItems.toastMessage("$error"))
-                              .then((value) => ConstantItems.navigatorPush(
+                            Prefs.setBool('isLogin', true);
+                            Prefs.setString('loginBy', 'phone');
+                          }).then(
+                            (value) async {
+                              String uid = auth.currentUser!.uid;
+                              UserModel newUser = UserModel(
+                                uid: uid,
+                                name: FirebaseAuth
+                                    .instance.currentUser!.phoneNumber,
+                                email:
+                                    '${FirebaseAuth.instance.currentUser!.phoneNumber}@gmail.com',
+                                phone: FirebaseAuth
+                                    .instance.currentUser!.phoneNumber,
+                                imageurl: '',
+                              );
+                              await FirebaseFirestore.instance
+                                  .collection("users")
+                                  .doc(uid)
+                                  .set(newUser.toMap());
+                            },
+                          ).whenComplete(() async {
+                            isLoading.setIsLoadingFalse();
+                            if (Prefs.getBool('isLogin', false) != false) {
+                              if (FirebaseAuth.instance.currentUser!.photoURL ==
+                                  null) {
+                                await Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => ProfileScreen(
+                                            userModel: UserModel(
+                                              uid: FirebaseAuth
+                                                  .instance.currentUser!.uid,
+                                              email:
+                                                  '${FirebaseAuth.instance.currentUser!.phoneNumber}@gmail.com',
+                                              imageurl:
+                                                  'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
+                                              name:
+                                                  'name : ${FirebaseAuth.instance.currentUser!.uid.toString()}',
+                                              phone: FirebaseAuth.instance
+                                                  .currentUser!.phoneNumber,
+                                            ),
+                                          )),
+                                );
+                              } else if (FirebaseAuth
+                                      .instance.currentUser!.photoURL ==
+                                  '') {
+                                await Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => ProfileScreen(
+                                            userModel: UserModel(
+                                              uid: FirebaseAuth
+                                                  .instance.currentUser!.uid,
+                                              email:
+                                                  '${FirebaseAuth.instance.currentUser!.phoneNumber}@gmail.com',
+                                              imageurl:
+                                                  'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
+                                              name:
+                                                  'name : ${FirebaseAuth.instance.currentUser!.uid.toString()}',
+                                              phone: FirebaseAuth.instance
+                                                  .currentUser!.phoneNumber,
+                                            ),
+                                          )),
+                                );
+                              } else {
+                                await Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => ChatHomeScreen(
+                                            userModel: UserModel(
+                                              uid: FirebaseAuth
+                                                  .instance.currentUser!.uid,
+                                              email:
+                                                  '${FirebaseAuth.instance.currentUser!.phoneNumber}',
+                                              imageurl: FirebaseAuth.instance
+                                                  .currentUser!.photoURL,
+                                              name: FirebaseAuth.instance
+                                                  .currentUser!.displayName,
+                                              phone: FirebaseAuth.instance
+                                                  .currentUser!.phoneNumber,
+                                            ),
+                                          )),
+                                );
+                              }
+                            } else {
+                              ConstantItems.navigatorPushReplacement(
+                                  context, LoginPage());
+                            }
+                          }).onError((error, stackTrace) {
+                            isLoading.setIsLoadingFalse();
+                            return ConstantItems.toastMessage("$error");
+                          }).then((value) => ConstantItems.navigatorPush(
                                   context, const LoginPage()));
                         } catch (e) {
+                          final isLoading = Provider.of<IsLoadingProvider>(
+                              context,
+                              listen: false);
+                          isLoading.setIsLoadingFalse();
                           ConstantItems.toastMessage(e.toString()).then(
-                              (value) => ConstantItems.navigatorPush(
+                              (value) => ConstantItems.navigatorPushReplacement(
                                   context, const LoginPage()));
                         }
                       },
@@ -231,7 +260,7 @@ class _OTPScreenState extends State<OTPScreen> {
                           sendFirebaseOtpVerify();
                         } catch (e) {
                           ConstantItems.toastMessage("$e").then((value) =>
-                              ConstantItems.navigatorPush(
+                              ConstantItems.navigatorPushReplacement(
                                   context, PhoneLoginScreen()));
                         }
                       },

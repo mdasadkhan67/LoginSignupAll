@@ -8,11 +8,7 @@ import 'package:google_fb_task/model/firebase_helper.dart';
 import 'package:google_fb_task/model/user_signup_model.dart';
 import 'package:google_fb_task/ui/chatroomscreen/chat_room_screen.dart';
 import 'package:google_fb_task/ui/chatsearchscreen/chaht_search_screen.dart';
-import 'package:google_fb_task/ui/login/login_page.dart';
 import 'package:google_fb_task/utils/chat_screen_utils.dart';
-import 'package:google_fb_task/utils/firebase_email_Signup.dart';
-import 'package:google_fb_task/utils/login_utils.dart';
-import 'package:google_fb_task/utils/shared_pref_services.dart';
 import 'package:google_fb_task/widget/background_decoration.dart';
 
 class ChatHomeScreen extends StatefulWidget {
@@ -52,6 +48,14 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
   }
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    print(FirebaseAuth.instance.currentUser!.photoURL.toString());
+    print(FirebaseAuth.instance.currentUser!.email.toString());
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -64,18 +68,7 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
             padding: const EdgeInsets.all(8.0),
             child: IconButton(
               icon: const Icon(Icons.logout_outlined),
-              onPressed: (() async {
-                var loginType = Prefs.getString('loginBy', '');
-                if (loginType == 'google') {
-                  LoginUtils.googleLogout(context);
-                } else if (loginType == 'facebook') {
-                  LoginUtils.facebookLogout(context);
-                } else if (loginType == 'phone') {
-                  LoginUtils.phoneSignOut(context);
-                } else {
-                  AuthenticationHelper().signOut(context);
-                }
-              }),
+              onPressed: ChatScreenUtils.logOutMethod(context),
             ),
           )
         ],

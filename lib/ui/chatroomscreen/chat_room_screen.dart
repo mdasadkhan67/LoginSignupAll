@@ -1,15 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fb_task/const/const.dart';
 import 'package:google_fb_task/model/chat_room_model.dart';
 import 'package:google_fb_task/model/message_model.dart';
 import 'package:google_fb_task/model/user_signup_model.dart';
-import 'package:google_fb_task/ui/login/login_page.dart';
 import 'package:google_fb_task/utils/chat_screen_utils.dart';
-import 'package:google_fb_task/utils/firebase_email_Signup.dart';
-import 'package:google_fb_task/utils/login_utils.dart';
-import 'package:google_fb_task/utils/shared_pref_services.dart';
 import 'package:google_fb_task/widget/background_decoration.dart';
 import 'package:uuid/uuid.dart';
 
@@ -62,30 +57,14 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     return Scaffold(
       appBar: AppBar(
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: <Color>[Colors.black, Colors.blue]),
-          ),
+          decoration: BackgroundWidget(),
         ),
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: IconButton(
               icon: const Icon(Icons.logout_outlined),
-              onPressed: (() async {
-                var loginType = Prefs.getString('loginBy', '');
-                if (loginType == 'google') {
-                  LoginUtils.googleLogout(context);
-                } else if (loginType == 'facebook') {
-                  LoginUtils.facebookLogout(context);
-                } else if (loginType == 'phone') {
-                  LoginUtils.phoneSignOut(context);
-                } else {
-                  AuthenticationHelper().signOut(context);
-                }
-              }),
+              onPressed: ChatScreenUtils.logOutMethod(context),
             ),
           )
         ],

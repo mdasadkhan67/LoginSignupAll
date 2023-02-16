@@ -33,8 +33,20 @@ class _SpalashScreenState extends State<SpalashScreen> {
           children: [
             Image.asset(
               'assets/images/abc.png',
-              width: 300,
-              height: 150,
+              width: MediaQuery.of(context).size.width,
+              height: 250,
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            const Text(
+              "ChatApp",
+              style: TextStyle(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w900,
+                  fontStyle: FontStyle.italic,
+                  fontFamily: 'Open Sans',
+                  fontSize: 40),
             ),
           ],
         ),

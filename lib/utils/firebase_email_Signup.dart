@@ -3,10 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fb_task/const/const.dart';
 import 'package:google_fb_task/model/user_signup_model.dart';
+import 'package:google_fb_task/provider/isloading_provider.dart';
 import 'package:google_fb_task/ui/chathomescreen/chat_home_page.dart';
 import 'package:google_fb_task/ui/login/login_page.dart';
 import 'package:google_fb_task/ui/profile_screen/profile_screen.dart';
 import 'package:google_fb_task/utils/shared_pref_services.dart';
+import 'package:provider/provider.dart';
 
 class AuthenticationHelper {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -20,6 +22,8 @@ class AuthenticationHelper {
     String? imageurl,
   }) async {
     try {
+      final isLoading = Provider.of<IsLoadingProvider>(context, listen: false);
+      isLoading.setIsLoadingTrue();
       await _auth
           .createUserWithEmailAndPassword(
         email: email!,
@@ -52,23 +56,8 @@ class AuthenticationHelper {
       }).then((result) {
         if (result == null) {
           if (Prefs.getBool('isLogin', false) != false) {
-            if (FirebaseAuth.instance.currentUser!.photoURL != '' ||
-                FirebaseAuth.instance.currentUser!.photoURL != null) {
-              ConstantItems.navigatorPushReplacement(
-                context,
-                ChatHomeScreen(
-                  userModel: UserModel(
-                    uid: FirebaseAuth.instance.currentUser!.uid,
-                    email: FirebaseAuth
-                            .instance.currentUser!.providerData[0].email ??
-                        FirebaseAuth.instance.currentUser!.email,
-                    imageurl: '',
-                    name: '',
-                    phone: phone,
-                  ),
-                ),
-              );
-            } else {
+            if (FirebaseAuth.instance.currentUser!.photoURL == '') {
+              isLoading.setIsLoadingFalse();
               ConstantItems.navigatorPushReplacement(
                 context,
                 ProfileScreen(
@@ -83,20 +72,41 @@ class AuthenticationHelper {
                   ),
                 ),
               );
+            } else {
+              isLoading.setIsLoadingFalse();
+              ConstantItems.navigatorPushReplacement(
+                context,
+                ChatHomeScreen(
+                  userModel: UserModel(
+                    uid: FirebaseAuth.instance.currentUser!.uid,
+                    email: FirebaseAuth
+                            .instance.currentUser!.providerData[0].email ??
+                        FirebaseAuth.instance.currentUser!.email,
+                    imageurl: '',
+                    name: '',
+                    phone: phone,
+                  ),
+                ),
+              );
             }
           }
         } else {
+          isLoading.setIsLoadingFalse();
           ConstantItems.toastMessage(
               "User already registerd with the same Email Id");
         }
       });
     } on FirebaseAuthException catch (e) {
+      final isLoading = Provider.of<IsLoadingProvider>(context, listen: false);
+      isLoading.setIsLoadingFalse();
       return ConstantItems.toastMessage("${e.message}");
     }
   }
 
   Future signIn({String? email, String? password, context}) async {
     try {
+      final isLoading = Provider.of<IsLoadingProvider>(context, listen: false);
+      isLoading.setIsLoadingTrue();
       await _auth
           .signInWithEmailAndPassword(email: email!, password: password!)
           .then((value) async {
@@ -121,8 +131,10 @@ class AuthenticationHelper {
         await FirebaseAuth.instance.currentUser!.updateEmail(email);
         await FirebaseAuth.instance.currentUser!.updatePassword(password);
       }).then((value) {
+        isLoading.setIsLoadingFalse();
         if (Prefs.getBool('isLogin', false) != false) {
-          if (FirebaseAuth.instance.currentUser!.photoURL != '') {
+          if (FirebaseAuth.instance.currentUser!.photoURL != null ||
+              FirebaseAuth.instance.currentUser!.photoURL != '') {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
@@ -156,17 +168,25 @@ class AuthenticationHelper {
             );
           }
         } else {
+          isLoading.setIsLoadingFalse();
           ConstantItems.navigatorPushReplacement(context, LoginPage());
         }
       }).onError(
-        (error, stackTrace) => ConstantItems.toastMessage("User not found"),
+        (error, stackTrace) {
+          isLoading.setIsLoadingFalse();
+          return ConstantItems.toastMessage("User not found");
+        },
       );
     } on FirebaseAuthException catch (e) {
+      final isLoading = Provider.of<IsLoadingProvider>(context, listen: false);
+      isLoading.setIsLoadingFalse();
       return e.message;
     }
   }
 
   Future signOut(context) async {
+    final isLoading = Provider.of<IsLoadingProvider>(context, listen: false);
+    isLoading.setIsLoadingTrue();
     await Prefs.setBool('isLogin', false);
     Prefs.setString('loginBy', '');
     await _auth.signOut().then((value) =>

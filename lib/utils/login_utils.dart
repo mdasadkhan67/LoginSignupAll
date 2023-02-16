@@ -3,17 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_fb_task/const/const.dart';
 import 'package:google_fb_task/model/user_signup_model.dart';
+import 'package:google_fb_task/provider/isloading_provider.dart';
 import 'package:google_fb_task/ui/chathomescreen/chat_home_page.dart';
 import 'package:google_fb_task/ui/login/login_page.dart';
 import 'package:google_fb_task/ui/profile_screen/profile_screen.dart';
 import 'package:google_fb_task/utils/shared_pref_services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 
 class LoginUtils {
   //Code For Facebook
 
   static facebookLogin(BuildContext context) async {
+    final isLoading = Provider.of<IsLoadingProvider>(context, listen: false);
+    isLoading.setIsLoadingTrue();
     try {
       final result = await FacebookAuth.i.login(permissions: [
         'public_profile',
@@ -54,6 +58,7 @@ class LoginUtils {
                 .set(newUser.toMap())
                 .then((value) => print("UserStored"))
                 .then((value) {
+              isLoading.setIsLoadingFalse();
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) {
@@ -106,6 +111,8 @@ class LoginUtils {
   }
 
   static void facebookLogout(BuildContext context) async {
+    final isLoading = Provider.of<IsLoadingProvider>(context, listen: false);
+    isLoading.setIsLoadingFalse();
     Prefs.setBool('isLogin', false);
     Prefs.setString('loginBy', '');
     await FirebaseAuth.instance.signOut();
@@ -116,6 +123,8 @@ class LoginUtils {
 
 //Code for Google
   static googleLogin(BuildContext context) async {
+    final isLoading = Provider.of<IsLoadingProvider>(context, listen: false);
+    isLoading.setIsLoadingTrue();
     GoogleSignIn googleSignIn = GoogleSignIn();
     try {
       var reslut = await googleSignIn.signIn();
@@ -160,6 +169,7 @@ class LoginUtils {
           Prefs.setString('loginBy', 'google');
         },
       ).then((value) {
+        isLoading.setIsLoadingFalse();
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) {
@@ -203,6 +213,8 @@ class LoginUtils {
   }
 
   static Future<void> googleLogout(BuildContext context) async {
+    final isLoading = Provider.of<IsLoadingProvider>(context, listen: false);
+    isLoading.setIsLoadingFalse();
     Prefs.setBool('isLogin', false);
     Prefs.setString('loginBy', '');
     await GoogleSignIn().disconnect();
@@ -214,6 +226,8 @@ class LoginUtils {
 
 //Logout By Phone
   static Future<void> phoneSignOut(context) async {
+    final isLoading = Provider.of<IsLoadingProvider>(context, listen: false);
+    isLoading.setIsLoadingFalse();
     Prefs.setBool('isLogin', false);
     Prefs.setString('loginBy', '');
     await FirebaseAuth.instance.signOut().then((value) =>

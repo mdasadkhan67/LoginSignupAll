@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fb_task/const/const.dart';
@@ -23,6 +22,7 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isShowPassword = true;
+
   @override
   Widget build(BuildContext context) {
     return Form(

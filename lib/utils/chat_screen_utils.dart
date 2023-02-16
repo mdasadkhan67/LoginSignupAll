@@ -18,13 +18,14 @@ class ChatScreenUtils {
     userPhone = Prefs.getInt('phone', 0)!;
   }
 
-  static logOut(BuildContext context) {
-    return (() {
-      if (loginBy == 'google') {
+  static logOutMethod(BuildContext context) {
+    return (() async {
+      var loginType = Prefs.getString('loginBy', '');
+      if (loginType == 'google') {
         LoginUtils.googleLogout(context);
-      } else if (loginBy == 'facebook') {
+      } else if (loginType == 'facebook') {
         LoginUtils.facebookLogout(context);
-      } else if (loginBy == 'phone') {
+      } else if (loginType == 'phone') {
         LoginUtils.phoneSignOut(context);
       } else {
         AuthenticationHelper().signOut(context);

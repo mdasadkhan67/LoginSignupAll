@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fb_task/const/const.dart';
-import 'package:google_fb_task/ui/home_page.dart';
 import 'package:google_fb_task/ui/login/login_page.dart';
 import 'package:google_fb_task/utils/firebase_email_Signup.dart';
 import 'package:google_fb_task/widget/button_gradiant.dart';

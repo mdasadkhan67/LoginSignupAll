@@ -91,16 +91,7 @@ class _ChatHomePageState extends State<ChatHomePage> {
         actions: [
           IconButton(
             onPressed: () {
-              var loginType = Prefs.getString('loginBy', '');
-              if (loginType == 'google') {
-                LoginUtils.googleLogout(context);
-              } else if (loginType == 'facebook') {
-                LoginUtils.facebookLogout(context);
-              } else if (loginType == 'phone') {
-                LoginUtils.phoneSignOut(context);
-              } else {
-                AuthenticationHelper().signOut(context);
-              }
+              ChatScreenUtils.logOutMethod(context);
             },
             icon: const Icon(Icons.logout),
           )
