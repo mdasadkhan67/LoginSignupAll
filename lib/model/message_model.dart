@@ -5,12 +5,16 @@ class MessageModel {
   String? messageId;
   String? sender;
   String? text;
+  String? image;
+  String? type;
   bool? seen;
   DateTime? createdob;
   MessageModel({
     this.messageId,
     this.sender,
     this.text,
+    this.image,
+    this.type,
     this.seen,
     this.createdob,
   });
@@ -20,6 +24,8 @@ class MessageModel {
       'messageId': messageId,
       'sender': sender,
       'text': text,
+      'image': image,
+      'type': type,
       'seen': seen,
       'createdob': createdob,
     };
@@ -29,6 +35,8 @@ class MessageModel {
     messageId = map['messageId'];
     sender = map['sender'];
     text = map['text'];
+    image = map['image'];
+    type = map['type'];
     seen = map['seen'];
     createdob = map['createdob'].toDate();
   }

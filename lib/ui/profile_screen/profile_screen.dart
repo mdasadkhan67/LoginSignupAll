@@ -30,17 +30,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   File? imageFile;
   TextEditingController fullNameTEC = TextEditingController();
+
   void selectImage(ImageSource source) async {
     ImagePicker imgPickObj = ImagePicker();
     XFile? pickFile = await imgPickObj.pickImage(source: source);
     if (pickFile != null) {
       cropImage(pickFile);
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
   }
 
   void cropImage(XFile file) async {
